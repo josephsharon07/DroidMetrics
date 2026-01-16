@@ -322,28 +322,6 @@
             to { transform: rotate(360deg); }
         }
 
-        .websocket-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9em;
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            color: white;
-        }
-
-        .ws-status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4caf50;
-        }
-
-        .ws-status-dot.disconnected {
-            background: #f44336;
-        }
-
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -367,14 +345,6 @@
             <div class="status-bar">
                 <div class="status-item" id="apiStatus">
                     <span class="spinner"></span> Connecting...
-                </div>
-                <div class="websocket-indicator">
-                    <div class="ws-status-dot" id="wsMetricsStatus"></div>
-                    <span>WS Metrics: Connecting...</span>
-                </div>
-                <div class="websocket-indicator">
-                    <div class="ws-status-dot" id="wsCpuStatus"></div>
-                    <span>WS CPU: Connecting...</span>
                 </div>
             </div>
         </header>
@@ -759,136 +729,6 @@
             }
         }
 
-        // Connect to WebSocket for metrics
-        function connectMetricsWebSocket() {
-            const wsUri = `ws://10.10.10.48:8000/ws/metrics`;
-            let reconnectAttempts = 0;
-            const maxReconnectAttempts = 5;
-            
-            try {
-                const ws = new WebSocket(wsUri);
-                
-                ws.onopen = () => {
-                    console.log('✅ Metrics WebSocket connected');
-                    reconnectAttempts = 0;
-                    document.getElementById('wsMetricsStatus').classList.remove('disconnected');
-                    showMessage('✅ Metrics WebSocket connected', 'success');
-                };
-                
-                ws.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        // Update metrics from WebSocket
-                        if (data.battery_level !== undefined) {
-                            document.getElementById('batteryPercent').textContent = `${data.battery_level}%`;
-                            document.getElementById('batteryProgressFill').style.width = `${data.battery_level}%`;
-                        }
-                        if (data.memory_usage_percent !== undefined) {
-                            document.getElementById('memoryPercent').textContent = `${data.memory_usage_percent.toFixed(1)}%`;
-                            document.getElementById('memoryProgressFill').style.width = `${Math.min(data.memory_usage_percent, 100)}%`;
-                        }
-                        if (data.storage_usage_percent !== undefined) {
-                            document.getElementById('storagePercent').textContent = `${data.storage_usage_percent.toFixed(1)}%`;
-                            document.getElementById('storageProgressFill').style.width = `${Math.min(data.storage_usage_percent, 100)}%`;
-                        }
-                    } catch (e) {
-                        console.error('Metrics WebSocket parse error:', e);
-                    }
-                };
-                
-                ws.onerror = (error) => {
-                    console.error('❌ Metrics WebSocket error:', error);
-                    document.getElementById('wsMetricsStatus').classList.add('disconnected');
-                };
-                
-                ws.onclose = () => {
-                    console.log('Metrics WebSocket closed');
-                    document.getElementById('wsMetricsStatus').classList.add('disconnected');
-                    
-                    reconnectAttempts++;
-                    if (reconnectAttempts <= maxReconnectAttempts) {
-                        const delay = 2000 + (reconnectAttempts * 1000);
-                        console.log(`Reconnecting Metrics WebSocket in ${delay}ms... (Attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
-                        setTimeout(connectMetricsWebSocket, delay);
-                    } else {
-                        console.log('Max reconnection attempts reached for Metrics WebSocket');
-                        showMessage('⚠️ Metrics WebSocket disconnected - using HTTP polling', 'warning');
-                    }
-                };
-            } catch (e) {
-                console.error('WebSocket creation error:', e);
-            }
-        }
-
-        // Connect to WebSocket for CPU
-        function connectCPUWebSocket() {
-            const wsUri = `ws://10.10.10.48:8000/ws/cpu`;
-            let reconnectAttempts = 0;
-            const maxReconnectAttempts = 5;
-            
-            try {
-                const ws = new WebSocket(wsUri);
-                
-                ws.onopen = () => {
-                    console.log('✅ CPU WebSocket connected');
-                    reconnectAttempts = 0;
-                    document.getElementById('wsCpuStatus').classList.remove('disconnected');
-                    showMessage('✅ CPU WebSocket connected', 'success');
-                };
-                
-                ws.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        // Update CPU frequency from WebSocket
-                        if (data.per_core) {
-                            const coresContainer = document.getElementById('cpuCoresFreq');
-                            coresContainer.innerHTML = '';
-                            Object.entries(data.per_core).forEach(([core, freq]) => {
-                                const mhz = (freq / 1000).toFixed(0);
-                                const coreEl = document.createElement('div');
-                                coreEl.className = 'cpu-core';
-                                coreEl.innerHTML = `<div class="cpu-core-label">${core}</div><div class="cpu-core-value">${mhz}</div>`;
-                                coresContainer.appendChild(coreEl);
-                            });
-                        }
-                        if (data.min_mhz) {
-                            document.getElementById('cpuFreqMin').textContent = `${data.min_mhz.toFixed(2)} MHz`;
-                        }
-                        if (data.max_mhz) {
-                            document.getElementById('cpuFreqMax').textContent = `${data.max_mhz.toFixed(2)} MHz`;
-                        }
-                        if (data.avg_mhz) {
-                            document.getElementById('cpuFreqAvg').textContent = `${data.avg_mhz.toFixed(2)} MHz`;
-                        }
-                    } catch (e) {
-                        console.error('CPU WebSocket parse error:', e);
-                    }
-                };
-                
-                ws.onerror = (error) => {
-                    console.error('❌ CPU WebSocket error:', error);
-                    document.getElementById('wsCpuStatus').classList.add('disconnected');
-                };
-                
-                ws.onclose = () => {
-                    console.log('CPU WebSocket closed');
-                    document.getElementById('wsCpuStatus').classList.add('disconnected');
-                    
-                    reconnectAttempts++;
-                    if (reconnectAttempts <= maxReconnectAttempts) {
-                        const delay = 2000 + (reconnectAttempts * 1000);
-                        console.log(`Reconnecting CPU WebSocket in ${delay}ms... (Attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
-                        setTimeout(connectCPUWebSocket, delay);
-                    } else {
-                        console.log('Max reconnection attempts reached for CPU WebSocket');
-                        showMessage('⚠️ CPU WebSocket disconnected - using HTTP polling', 'warning');
-                    }
-                };
-            } catch (e) {
-                console.error('WebSocket creation error:', e);
-            }
-        }
-
         // Refresh all data
         function refreshAll() {
             checkHealth();
@@ -926,11 +766,7 @@
             // Auto-refresh every 5 seconds
             autoRefreshInterval = setInterval(refreshAll, 5000);
             
-            // Connect WebSockets
-            connectMetricsWebSocket();
-            connectCPUWebSocket();
-            
-            showMessage('✅ Dashboard initialized and connecting to API', 'success');
+            showMessage('✅ Dashboard initialized (HTTP polling active)', 'success');
         }
 
         // Start when page loads

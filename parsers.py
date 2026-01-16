@@ -19,12 +19,17 @@ def parse_cpu_freq(text: str):
         if ":" in line:
             path, value = line.split(":", 1)
             try:
-                # Extract cpu number from path like /sys/devices/system/cpu/cpu0/...
-                parts = path.split("/")
-                cpu_part = [p for p in parts if p.startswith("cpu")]
+                # Extract cpu number from path like /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+                # Split path and find "cpu0", "cpu1", etc.
+                path_parts = path.strip().split("/")
+                cpu_part = None
+                for part in path_parts:
+                    if part.startswith("cpu") and part[3:].isdigit():
+                        cpu_part = part
+                        break
+                
                 if cpu_part:
-                    cpu_num = cpu_part[0]  # e.g., "cpu0"
-                    freqs[cpu_num] = int(value.strip())
+                    freqs[cpu_part] = int(value.strip())
             except (ValueError, IndexError):
                 continue
     return freqs if freqs else {"error": "Could not parse CPU frequencies"}
