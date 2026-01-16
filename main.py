@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 from adb_utils import adb_shell, adb_devices
@@ -117,6 +117,12 @@ class RealTimeMetrics(BaseModel):
     cpu_max_mhz: float
     cpu_min_mhz: float
     thermal_max_temp: float
+
+
+class UptimeInfo(BaseModel):
+    uptime_seconds: int = Field(..., example=86400)
+    uptime_formatted: str = Field(..., example="1d 2h 30m 45s")
+    boot_time: datetime = Field(...)
 
 
 class SystemInfo(BaseModel):
@@ -281,7 +287,7 @@ async def cpu_frequency():
     Get real-time CPU frequency for each core with statistics.
     
     Returns: per-core frequencies in kHz, plus min, max, and average calculations.
-    Uses cpuinfo_min_freq and cpuinfo_max_freq for accurate limits.
+    Uses cpuinfo_min_freq and cpuinfo_max_freq from all cores for accurate limits.
     """
     try:
         # Get per-core current frequencies
@@ -294,13 +300,26 @@ async def cpu_frequency():
         if "error" in freq_data:
             raise HTTPException(status_code=500, detail="Failed to parse CPU frequencies")
         
-        # Get system-wide min/max from first CPU core
+        # Get all cores' min frequencies and find the actual minimum
         try:
-            min_freq = int(adb_shell("cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq").strip())
-            max_freq = int(adb_shell("cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq").strip())
+            min_raw = adb_shell(
+                "for f in /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_min_freq; "
+                "do cat $f; done"
+            )
+            min_freqs = [int(x.strip()) for x in min_raw.strip().split('\n') if x.strip().isdigit()]
+            min_freq = min(min_freqs) if min_freqs else freq_data["min_khz"]
         except:
-            # Fallback to calculated values if individual reads fail
             min_freq = freq_data["min_khz"]
+        
+        # Get all cores' max frequencies and find the actual maximum
+        try:
+            max_raw = adb_shell(
+                "for f in /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_max_freq; "
+                "do cat $f; done"
+            )
+            max_freqs = [int(x.strip()) for x in max_raw.strip().split('\n') if x.strip().isdigit()]
+            max_freq = max(max_freqs) if max_freqs else freq_data["max_khz"]
+        except:
             max_freq = freq_data["max_khz"]
         
         return CPUFrequency(
@@ -435,6 +454,45 @@ async def thermal_info():
         )
     except Exception as e:
         logger.error(f"Thermal info error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============ UPTIME ENDPOINT ============
+@app.get("/uptime", response_model=UptimeInfo, tags=["System"])
+async def uptime_info():
+    """
+    Get system uptime information.
+    
+    Returns: Device uptime in seconds and formatted string.
+    """
+    try:
+        result = adb_shell('cat /proc/uptime')
+        uptime_seconds = int(float(result.split()[0]))
+        
+        # Format uptime
+        days = uptime_seconds // 86400
+        hours = (uptime_seconds % 86400) // 3600
+        minutes = (uptime_seconds % 3600) // 60
+        seconds = uptime_seconds % 60
+        
+        if days > 0:
+            formatted = f"{days}d {hours}h {minutes}m {seconds}s"
+        elif hours > 0:
+            formatted = f"{hours}h {minutes}m {seconds}s"
+        else:
+            formatted = f"{minutes}m {seconds}s"
+        
+        # Calculate boot time
+        now = datetime.now()
+        boot_time = now - timedelta(seconds=uptime_seconds)
+        
+        return UptimeInfo(
+            uptime_seconds=uptime_seconds,
+            uptime_formatted=formatted,
+            boot_time=boot_time
+        )
+    except Exception as e:
+        logger.error(f"Uptime error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

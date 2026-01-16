@@ -67,6 +67,101 @@
             text-align: center;
             margin-bottom: 3rem;
             position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-action-btn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .header-action-btn:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px var(--glow-primary);
+        }
+
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 400px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+
+        .alert.removing {
+            animation: slideOut 0.3s ease;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            color: #6ee7b7;
+            border-color: rgba(16, 185, 129, 0.4);
         }
 
         header h1 {
@@ -402,42 +497,82 @@
 
         .cpu-cores-container {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
+            flex-direction: column;
+            gap: 1rem;
             margin-top: 1.5rem;
         }
 
-        .cpu-core {
+        .cpu-core-bar {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 1rem;
-            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(124, 58, 237, 0.1));
-            border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            min-width: 80px;
-            transition: all 0.3s ease;
+            gap: 0.5rem;
         }
 
-        .cpu-core:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent-primary);
-            box-shadow: 0 10px 30px var(--glow-primary);
+        .cpu-core-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .cpu-core-label {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
         }
 
         .cpu-core-value {
-            font-size: 1.25rem;
+            font-size: 0.875rem;
             font-weight: 800;
             color: var(--accent-primary);
+        }
+
+        .cpu-bar-container {
+            position: relative;
+            width: 100%;
+            height: 32px;
+            background: rgba(148, 163, 184, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .cpu-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 8px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 0 20px var(--glow-primary);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.75rem;
+        }
+
+        .cpu-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer-bar 2s infinite;
+        }
+
+        @keyframes shimmer-bar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .cpu-bar-text {
+            position: relative;
+            z-index: 1;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .temperature {
@@ -606,14 +741,22 @@
     </style>
 </head>
 <body>
+    <div class="alert-container" id="alertContainer"></div>
+
     <div class="container">
         <header>
-            <h1>⚡ ADB-Insight Dashboard</h1>
-            <p class="subtitle">Real-time Android Device Monitoring</p>
-            <div class="status-bar">
-                <div class="status-item" id="apiStatus">
-                    <span class="spinner"></span> Connecting...
+            <div class="header-content">
+                <h1>⚡ ADB-Insight Dashboard</h1>
+                <p class="subtitle">Real-time Android Device Monitoring</p>
+                <div class="status-bar">
+                    <div class="status-item" id="apiStatus">
+                        <span class="spinner"></span> Connecting...
+                    </div>
                 </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-action-btn" onclick="toggleTheme()" title="Toggle Theme">🌓</button>
+                <button class="header-action-btn" onclick="exportMetrics()" title="Export Metrics">📥</button>
             </div>
         </header>
 
@@ -674,6 +817,23 @@
             </div>
 
             <div class="card">
+                <div class="card-title">⏱️ System Uptime</div>
+                <div style="margin: 1.5rem 0;">
+                    <div class="metric-large" id="uptimeValue">—</div>
+                    <div class="metric-label">Device Uptime</div>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Boot Time</span>
+                    <span class="info-value" id="bootTime">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Uptime (Seconds)</span>
+                    <span class="info-value" id="uptimeSeconds">—</span>
+                </div>
+                <div class="timestamp" id="uptimeTimestamp"></div>
+            </div>
+
+            <div class="card">
                 <div class="card-title">🛠️ OS Information</div>
                 <div class="info-row">
                     <span class="info-label">Android Version</span>
@@ -725,19 +885,23 @@
                     <span class="update-indicator" id="cpuFreqIndicator"></span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Min Frequency</span>
+                    <span class="info-label">Min Frequency (All Cores)</span>
                     <span class="info-value" id="cpuFreqMin">—</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Max Frequency</span>
+                    <span class="info-label">Max Frequency (All Cores)</span>
                     <span class="info-value" id="cpuFreqMax">—</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Average Frequency</span>
+                    <span class="info-label">Current Average</span>
                     <span class="info-value" id="cpuFreqAvg">—</span>
                 </div>
+                <div class="info-row">
+                    <span class="info-label">Frequency Range</span>
+                    <span class="info-value" id="cpuFreqRange">—</span>
+                </div>
                 <div class="chart-container">
-                    <div class="metric-label">Per-Core Frequencies</div>
+                    <div class="metric-label">Real-time Per-Core Frequencies</div>
                     <div class="cpu-cores-container" id="cpuCoresFreq"></div>
                 </div>
                 <div class="timestamp" id="cpuFreqTimestamp"></div>
@@ -851,7 +1015,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://10.10.10.48:8000';
+        const API_URL = 'http://127.0.0.1:8000';
         let autoRefreshInterval = null;
         let autoRefreshEnabled = true;
         let lastUpdateTime = {};
@@ -917,20 +1081,41 @@
                 document.getElementById('cpuFreqMax').textContent = `${data.max_mhz.toFixed(2)} MHz`;
                 document.getElementById('cpuFreqAvg').textContent = `${data.avg_mhz.toFixed(2)} MHz`;
                 
+                // Show frequency range
+                const rangeGHz = ((data.max_mhz - data.min_mhz) / 1000).toFixed(2);
+                document.getElementById('cpuFreqRange').textContent = `${data.min_mhz.toFixed(0)} - ${data.max_mhz.toFixed(0)} MHz (${rangeGHz} GHz span)`;
+                
                 const coresContainer = document.getElementById('cpuCoresFreq');
                 coresContainer.innerHTML = '';
                 if (data.per_core) {
                     Object.entries(data.per_core).forEach(([core, freq]) => {
                         const mhz = (freq / 1000).toFixed(0);
+                        const maxFreq = data.max_mhz;
+                        const minFreq = data.min_mhz;
+                        // Calculate percentage based on max (for visual bar)
+                        const absolutePercentage = (freq / 1000 / maxFreq * 100).toFixed(1);
+                        // Calculate percentage of usable range for tooltip
+                        const rangePercentage = ((freq / 1000 - minFreq) / (maxFreq - minFreq) * 100).toFixed(1);
+                        
                         const coreEl = document.createElement('div');
-                        coreEl.className = 'cpu-core';
-                        coreEl.innerHTML = `<div class="cpu-core-label">${core}</div><div class="cpu-core-value">${mhz}</div>`;
+                        coreEl.className = 'cpu-core-bar';
+                        coreEl.innerHTML = `
+                            <div class="cpu-core-header">
+                                <span class="cpu-core-label">${core}</span>
+                                <span class="cpu-core-value">${mhz} MHz</span>
+                            </div>
+                            <div class="cpu-bar-container">
+                                <div class="cpu-bar-fill" style="width: ${absolutePercentage}%" title="${rangePercentage}% of usable range (${minFreq}-${maxFreq} MHz)">
+                                    <span class="cpu-bar-text">${absolutePercentage}%</span>
+                                </div>
+                            </div>
+                        `;
                         coresContainer.appendChild(coreEl);
                     });
                 }
 
                 document.getElementById('summaryCpu').textContent = `${data.avg_mhz.toFixed(0)} MHz`;
-                document.getElementById('summaryCpuSub').textContent = `Min ${data.min_mhz.toFixed(0)} / Max ${data.max_mhz.toFixed(0)} MHz`;
+                document.getElementById('summaryCpuSub').textContent = `Range: ${data.min_mhz.toFixed(0)} - ${data.max_mhz.toFixed(0)} MHz`;
                 
                 lastUpdateTime.cpuFreq = new Date().toLocaleTimeString();
                 document.getElementById('cpuFreqTimestamp').textContent = `Last updated: ${lastUpdateTime.cpuFreq}`;
@@ -1062,9 +1247,125 @@
             }
         }
 
+        async function fetchUptime() {
+            try {
+                const response = await fetch(`${API_URL}/uptime`);
+                const data = await response.json();
+                
+                document.getElementById('uptimeValue').textContent = data.uptime_formatted;
+                document.getElementById('uptimeSeconds').textContent = data.uptime_seconds.toLocaleString();
+                const bootDate = new Date(data.boot_time);
+                document.getElementById('bootTime').textContent = bootDate.toLocaleString();
+                
+                lastUpdateTime.uptime = new Date().toLocaleTimeString();
+                document.getElementById('uptimeTimestamp').textContent = `Last updated: ${lastUpdateTime.uptime}`;
+            } catch (e) {
+                console.error('Uptime fetch error:', e);
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<span>${message}</span>`;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.classList.add('removing');
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        }
+
+        function checkAlerts() {
+            // Check memory usage
+            const memPercent = parseFloat(document.getElementById('memoryPercent').textContent);
+            if (memPercent > 90) {
+                showAlert('⚠️ Memory usage is critically high!', 'danger');
+            } else if (memPercent > 80) {
+                showAlert('⚠️ Memory usage is high', 'warning');
+            }
+
+            // Check storage usage
+            const storagePercent = parseFloat(document.getElementById('storagePercent').textContent);
+            if (storagePercent > 95) {
+                showAlert('⚠️ Storage is almost full!', 'danger');
+            } else if (storagePercent > 85) {
+                showAlert('⚠️ Storage is running low', 'warning');
+            }
+
+            // Check battery
+            const batteryPercent = parseFloat(document.getElementById('batteryPercent').textContent);
+            if (batteryPercent < 15) {
+                showAlert('🔋 Battery is low - Consider charging', 'warning');
+            }
+
+            // Check temperature
+            const thermalMax = parseFloat(document.getElementById('thermalMax').textContent);
+            if (thermalMax > 50) {
+                showAlert('🌡️ Device temperature is high', 'warning');
+            }
+        }
+
+        function toggleTheme() {
+            const root = document.documentElement;
+            const currentBg = root.style.getPropertyValue('--bg-primary');
+            
+            if (currentBg.includes('0a0e27')) {
+                // Switch to light theme
+                root.style.setProperty('--bg-primary', '#f8fafc');
+                root.style.setProperty('--bg-secondary', '#f1f5f9');
+                root.style.setProperty('--bg-card', 'rgba(226, 232, 240, 0.8)');
+                root.style.setProperty('--text-primary', '#0f172a');
+                root.style.setProperty('--text-secondary', '#475569');
+                root.style.setProperty('--text-muted', '#94a3b8');
+                root.style.setProperty('--border-color', 'rgba(30, 41, 59, 0.1)');
+                localStorage.setItem('theme', 'light');
+            } else {
+                // Switch to dark theme
+                root.style.setProperty('--bg-primary', '#0a0e27');
+                root.style.setProperty('--bg-secondary', '#131829');
+                root.style.setProperty('--bg-card', 'rgba(22, 27, 45, 0.8)');
+                root.style.setProperty('--text-primary', '#f8fafc');
+                root.style.setProperty('--text-secondary', '#94a3b8');
+                root.style.setProperty('--text-muted', '#64748b');
+                root.style.setProperty('--border-color', 'rgba(148, 163, 184, 0.1)');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        async function exportMetrics() {
+            try {
+                const response = await fetch(`${API_URL}/system`);
+                const data = await response.json();
+                
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `adb-metrics-${new Date().toISOString().slice(0, 19)}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                
+                showAlert('✅ Metrics exported successfully', 'success');
+            } catch (e) {
+                console.error('Export error:', e);
+                showAlert('❌ Failed to export metrics', 'danger');
+            }
+        }
+
+        function loadThemePreference() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            if (theme === 'light') {
+                toggleTheme();
+            }
+        }
+
         function refreshAll() {
             checkHealth();
             fetchDevice();
+            fetchUptime();
             fetchOS();
             fetchCPU();
             fetchCPUFrequency();
@@ -1072,6 +1373,7 @@
             fetchStorage();
             fetchBattery();
             fetchThermal();
+            checkAlerts();
         }
 
         function toggleAutoRefresh() {
@@ -1088,6 +1390,7 @@
         }
 
         function init() {
+            loadThemePreference();
             refreshAll();
             setInterval(checkHealth, 10000);
             autoRefreshInterval = setInterval(refreshAll, 5000);
